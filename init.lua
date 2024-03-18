@@ -3,8 +3,11 @@ local Discordia = require('discordia')
 local Discordia_slash = require('discordia-slash')
 local Constructors = Discordia_slash.util.tools()
 
+local enums = Discordia.enums
+
 local Command = {} -- Private
-local Prototype = {} -- Public
+local Command_prototype = {} -- Public
+Command.categories = {}
 Command.commands = {}
 
 --
@@ -14,64 +17,115 @@ Command.commands = {}
 --
 --- @class Command A command class
 --- @class Slash-command A slash-command class created by discordia-slash constructor
+--- @class Option Slash command class. It's an option of the slash-command
 
 --- Process of creating a command. After that, you'll need to set-up some settings of it
 --- @param name string The name of the command
 --- @param description string The description of the command
 --- @return Command self Return the command
 --
-function Command.__create(_, name, description)
+function Command.create(_, name, description)
 
     assert(name ~= nil, 'Insert a name for the command')
     assert(description ~= nil, 'Insert a description')
     name = string.lower(name)
 
     local self = {}
-    local Meta = {__index = Prototype}
+    local Meta = {__index = Command_prototype}
 
     self.name = name
     self.description = description
-    self._settings = Constructors.slashCommand(name, description)
+    self.settings = Constructors.slashCommand(name, description)
 
     Command.commands[name] = self
     return setmetatable(self, Meta)
 end
 
---- @param func function The function we'll call when the command is used
+--- Function to set the command reply. It'll check the permissions set by setPermissions method
+--- @param callback function The function we'll call when the command is used
 --
-function Prototype:setCallback(func)
+function Command_prototype:setCallback(callback)
+    assert((type(callback) == "function"), 'Insert a function')
     local Meta = getmetatable(self)
-    Meta.__call = func
+
+    Meta.__call = function(_, interaction, args)
+
+        local member = interaction.member
+        -- if self.permissions == nil then Meta.__call = func end
+
+        for _, permission in ipairs(self.permissions) do
+            -- Some checkings
+            if member:hasPermission('administrator') then break end
+            if member.user.id == member.guild.ownerId then break end
+            
+            if not member:hasPermission(permission) then
+                interaction:reply('You dont have enough permissions.')
+                return
+            end
+        end
+
+        callback(interaction, args)
+    end
+
     Meta.__metatable = 'locked'
 end
 
---- @param category string? The category of the command. It'll be useful to the help commands
+--- @param category string? The category of the command. It'll be stored in a cache variable.
 --
-function Prototype:setCategory(category)
-    self._category = category
+function Command_prototype:setCategory(category)
+    assert(category ~= nil, 'Insert a category.')
+    assert(not self.category, 'Attempt to change the category 2 times')
+
+    category = string.lower(category)
+
+    self.category = category
+
+    if not Command.categories[category] then
+        table.insert(Command.categories, category)
+    end
 end
+
+---@param option Option The option to add in the slash command
+--
+function Command_prototype:addSlashOption(option)
+    self.settings:addOption(option)
+end
+
+--- @param ... string The permissions needed to use this command.
+--
+function Command_prototype:setPermissions(...)
+    local permissions = {...}
+
+    for _, perm in ipairs(permissions) do
+        assert(enums.permission[perm] ~= nil)
+    end
+
+    self.permissions = permissions
+    -- self:setCallback(getmetatable(self).__call)
+end
+
 
 -- Getters 
 
 --- @return Slash-command self._settings return the slash command using the constructor of discordia-slash
 --
-function Prototype:getConfigs()
-    assert(self._settings ~= nil, 'The command ' .. self.name .. ' doesnt have any settings')
-    return self._settings
+function Command_prototype:getSlash()
+    assert(self.settings ~= nil, 'The command ' .. self.name .. ' doesnt have any settings')
+    return self.settings
 end
 
 --- @return string self._category return the category of the command
 --
-function Prototype:getCategory()
-    assert(self._category ~= nil, 'The command ' .. self.name .. ' doesnt have an category')
-    return self._category
+function Command_prototype:getCategory()
+    assert(self.category ~= nil, 'The command ' .. self.name .. ' doesnt have an category')
+    return self.category
 end
 
 --- @param name string Name of the command. It'll try to look at the cache to find this command
 --- @return Command|boolean -- Returning the command if it exists, returning false if it doesnt
 --
-function Prototype.get(name)
+function Command_prototype.get(name)
     return Command.commands[name] or false
 end
 
-return setmetatable(Command, {__call = Command.__create, __metatable = 'locked'})
+return setmetatable(Command, {__call = Command.create, __metatable = 'locked'})
