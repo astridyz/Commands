@@ -13,7 +13,7 @@ In your command.lua
 local Command = require('../packages/astrid_commands@0.0.1')
 local Ping = Command('Ping', 'Useful for tests I think')
 
-Ping:setCallback(function(_, interaction, args)
+Ping:setCallback(function(interaction, args)
     print('Command callback!')
 end)
 
