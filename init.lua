@@ -51,16 +51,15 @@ function Command_prototype:setCallback(callback)
     Meta.__call = function(_, interaction, args)
 
         local member = interaction.member
-        -- if self.permissions == nil then Meta.__call = func end
 
         for _, permission in ipairs(self.permissions) do
             -- Some checkings
             if member:hasPermission('administrator') then break end
-            if member.user.id == member.guild.ownerId then break end
+            if member.user.id == member.guild.ownerId then break end -- Breaking the loop will call the callback
             
             if not member:hasPermission(permission) then
                 interaction:reply('You dont have enough permissions.')
-                return
+                return -- Returning the function  won't call the callback
             end
         end
 
@@ -68,6 +67,7 @@ function Command_prototype:setCallback(callback)
     end
 
     Meta.__metatable = 'locked'
+    return true
 end
 
 --- @param category string? The category of the command. It'll be stored in a cache variable.
@@ -83,6 +83,8 @@ function Command_prototype:setCategory(category)
     if not Command.categories[category] then
         table.insert(Command.categories, category)
     end
+
+    return true
 end
 
 ---@param option Option The option to add in the slash command
@@ -101,7 +103,6 @@ function Command_prototype:setPermissions(...)
     end
 
     self.permissions = permissions
-    -- self:setCallback(getmetatable(self).__call)
 end
 
 
