@@ -50,6 +50,11 @@ function Command_prototype:setCallback(callback)
 
     Meta.__call = function(_, interaction, args)
 
+        if not self.permissions then --// If there's no permissions needed, just skip it
+            callback(interaction, args)
+            return
+        end
+
         local member = interaction.member
 
         for _, permission in ipairs(self.permissions) do
@@ -104,7 +109,6 @@ function Command_prototype:setPermissions(...)
 
     self.permissions = permissions
 end
-
 
 -- Getters 
 
