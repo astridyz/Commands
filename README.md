@@ -4,13 +4,18 @@ Utility package for creating commands using Discordia-slash
 ## Info
 This package depends on Discordia-slash and Discordia.
 It doesn't use Discordia Classes.
-It doesn't work without a command handler. It just supports the command creation process
+It doesn't work without a command handler. It solely supports the command creation process and the separation of commands into folders.
+
+## Installation
+
+Run:
+`git clone https://github.com/astridyz/Commands.git deps/astrid-commands`
 
 ## Usage
 In your command.lua
 
 ```lua
-local Command = require('../packages/astrid_commands@0.0.1')
+local Command = require('astrid-commands')
 local Ping = Command('Ping', 'Useful for tests I think')
 
 Ping:setCallback(function(interaction, args)
