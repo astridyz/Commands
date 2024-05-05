@@ -16,7 +16,7 @@ In your command.lua
 
 ```lua
 local Command = require('astrid-commands')
-local Ping = Command('Ping', 'Useful for tests I think')
+local Ping = Command('Ping', 'Useful for tests I think') --// It's not upper case sensitive
 
 Ping:setCallback(function(interaction, args)
     print('Command callback!')
@@ -24,16 +24,18 @@ end)
 
 Ping:setCategory('Useful')
 
+Test:setPermissions('banMembers', 'manageGuild') --// Check enum.permissions for options
+
 return Ping
 ```
 
 In your main.lua
 
 ```lua
--- Require the command using its name and call it as a function using the metamethod __call
+--// Require the command using its name and call it using the method :callback(...)
 
 local function commandsCallback(interaction, command, args)
-    commands[command.name](interaction, args)
+    commands[command.name]:callback(interaction, args)
 end
 
 -- Client configs
