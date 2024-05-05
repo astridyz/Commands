@@ -3,7 +3,6 @@ Utility package for creating commands using Discordia-slash
 
 ## Info
 This package depends on Discordia-slash and Discordia.
-It doesn't use Discordia Classes.
 It doesn't work without a command handler. It solely supports the command creation process and the separation of commands into folders.
 
 ## Installation
